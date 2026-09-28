@@ -1,0 +1,1297 @@
+{
+  "components": {
+    "schemas": {
+      "AnomalyCity": {
+        "properties": {
+          "anomaly_z_critical": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anomaly Z Critical"
+          },
+          "baseline_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline C"
+          },
+          "baseline_observations": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Observations"
+          },
+          "baseline_sigma": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Sigma"
+          },
+          "city_id": {
+            "title": "City Id",
+            "type": "string"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "departure_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure C"
+          },
+          "is_anomaly": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Anomaly"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "observed": {
+            "title": "Observed",
+            "type": "boolean"
+          },
+          "observed_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed C"
+          },
+          "return_is_reportable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Is Reportable"
+          },
+          "return_qualifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Qualifier"
+          },
+          "return_years": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Years"
+          },
+          "tail_fitted": {
+            "title": "Tail Fitted",
+            "type": "boolean"
+          },
+          "z": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Z"
+          }
+        },
+        "required": [
+          "city_id",
+          "name",
+          "country",
+          "latitude",
+          "longitude",
+          "observed",
+          "observed_c",
+          "baseline_c",
+          "baseline_sigma",
+          "anomaly_z_critical",
+          "z",
+          "departure_c",
+          "is_anomaly",
+          "baseline_observations",
+          "return_years",
+          "return_qualifier",
+          "return_is_reportable",
+          "tail_fitted"
+        ],
+        "title": "AnomalyCity",
+        "type": "object"
+      },
+      "AnomalyDay": {
+        "properties": {
+          "cities": {
+            "items": {
+              "$ref": "#/components/schemas/AnomalyCity"
+            },
+            "title": "Cities",
+            "type": "array"
+          },
+          "city_coverage": {
+            "items": {
+              "$ref": "#/components/schemas/CityCoverage"
+            },
+            "title": "City Coverage",
+            "type": "array"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/Coverage"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "coverage",
+          "cities",
+          "city_coverage"
+        ],
+        "title": "AnomalyDay",
+        "type": "object"
+      },
+      "Chrome": {
+        "properties": {
+          "axis": {
+            "title": "Axis",
+            "type": "string"
+          },
+          "gridline": {
+            "title": "Gridline",
+            "type": "string"
+          },
+          "ink": {
+            "title": "Ink",
+            "type": "string"
+          },
+          "ink_muted": {
+            "title": "Ink Muted",
+            "type": "string"
+          },
+          "ink_secondary": {
+            "title": "Ink Secondary",
+            "type": "string"
+          },
+          "plane": {
+            "title": "Plane",
+            "type": "string"
+          },
+          "surface": {
+            "title": "Surface",
+            "type": "string"
+          }
+        },
+        "required": [
+          "surface",
+          "plane",
+          "ink",
+          "ink_secondary",
+          "ink_muted",
+          "gridline",
+          "axis"
+        ],
+        "title": "Chrome",
+        "type": "object"
+      },
+      "CityCoverage": {
+        "properties": {
+          "city_id": {
+            "title": "City Id",
+            "type": "string"
+          },
+          "first_day": {
+            "format": "date",
+            "title": "First Day",
+            "type": "string"
+          },
+          "last_day": {
+            "format": "date",
+            "title": "Last Day",
+            "type": "string"
+          },
+          "observed_days": {
+            "title": "Observed Days",
+            "type": "integer"
+          },
+          "scored_days": {
+            "title": "Scored Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "city_id",
+          "first_day",
+          "last_day",
+          "observed_days",
+          "scored_days"
+        ],
+        "title": "CityCoverage",
+        "type": "object"
+      },
+      "CityTrend": {
+        "properties": {
+          "city_id": {
+            "title": "City Id",
+            "type": "string"
+          },
+          "cold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cold"
+          },
+          "hot": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Hot anomaly days per decade; null below the year minimum.",
+            "title": "Hot"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "net": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net"
+          }
+        },
+        "required": [
+          "city_id",
+          "name",
+          "hot",
+          "cold",
+          "net"
+        ],
+        "title": "CityTrend",
+        "type": "object"
+      },
+      "ClimateMatrix": {
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/MatrixCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "count_breaks": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Count Breaks",
+            "type": "array"
+          },
+          "count_labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Count Labels",
+            "type": "array"
+          },
+          "min_trend_years": {
+            "title": "Min Trend Years",
+            "type": "integer"
+          },
+          "net_labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Net Labels",
+            "type": "array"
+          },
+          "trends": {
+            "items": {
+              "$ref": "#/components/schemas/CityTrend"
+            },
+            "title": "Trends",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cells",
+          "trends",
+          "min_trend_years",
+          "count_breaks",
+          "count_labels",
+          "net_labels"
+        ],
+        "title": "ClimateMatrix",
+        "type": "object"
+      },
+      "Coverage": {
+        "properties": {
+          "first_day": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Day"
+          },
+          "last_day": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Day"
+          },
+          "last_scored_day": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Scored Day"
+          }
+        },
+        "required": [
+          "first_day",
+          "last_day",
+          "last_scored_day"
+        ],
+        "title": "Coverage",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "MatrixCell": {
+        "properties": {
+          "city_id": {
+            "title": "City Id",
+            "type": "string"
+          },
+          "cold_days": {
+            "title": "Cold Days",
+            "type": "integer"
+          },
+          "hot_days": {
+            "title": "Hot Days",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "net_days": {
+            "title": "Net Days",
+            "type": "integer"
+          },
+          "scored": {
+            "description": "False where the backfill has not reached this city-year.",
+            "title": "Scored",
+            "type": "boolean"
+          },
+          "scored_days": {
+            "title": "Scored Days",
+            "type": "integer"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "city_id",
+          "name",
+          "year",
+          "hot_days",
+          "cold_days",
+          "net_days",
+          "scored_days",
+          "scored"
+        ],
+        "title": "MatrixCell",
+        "type": "object"
+      },
+      "ModePalette": {
+        "properties": {
+          "chrome": {
+            "$ref": "#/components/schemas/Chrome"
+          },
+          "diverging": {
+            "description": "Nine steps, cold pole first.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Diverging",
+            "type": "array"
+          },
+          "emphasis": {
+            "title": "Emphasis",
+            "type": "string"
+          },
+          "risk": {
+            "description": "Five risk steps, lowest first.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Risk",
+            "type": "array"
+          },
+          "sequential": {
+            "$ref": "#/components/schemas/Sequential",
+            "description": "Five counting steps each, lowest first."
+          }
+        },
+        "required": [
+          "chrome",
+          "diverging",
+          "sequential",
+          "risk",
+          "emphasis"
+        ],
+        "title": "ModePalette",
+        "type": "object"
+      },
+      "Ready": {
+        "properties": {
+          "database": {
+            "title": "Database",
+            "type": "string"
+          },
+          "host": {
+            "title": "Host",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "database",
+          "host"
+        ],
+        "title": "Ready",
+        "type": "object"
+      },
+      "RiskCity": {
+        "properties": {
+          "city_id": {
+            "title": "City Id",
+            "type": "string"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "decision_threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Threshold"
+          },
+          "feature_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature Count"
+          },
+          "forecast_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forecast Date"
+          },
+          "horizon_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizon Days"
+          },
+          "horizon_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizon End"
+          },
+          "horizon_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizon Start"
+          },
+          "model_variant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Variant"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prediction_label": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prediction Label"
+          },
+          "risk_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Score"
+          },
+          "scored_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scored At"
+          }
+        },
+        "required": [
+          "city_id",
+          "name",
+          "country",
+          "forecast_date",
+          "horizon_start",
+          "horizon_end",
+          "horizon_days",
+          "risk_score",
+          "prediction_label",
+          "decision_threshold",
+          "model_version",
+          "model_variant",
+          "feature_count",
+          "scored_at"
+        ],
+        "title": "RiskCity",
+        "type": "object"
+      },
+      "RiskDay": {
+        "properties": {
+          "city_id": {
+            "title": "City Id",
+            "type": "string"
+          },
+          "horizon_day": {
+            "title": "Horizon Day",
+            "type": "integer"
+          },
+          "horizon_start": {
+            "format": "date",
+            "title": "Horizon Start",
+            "type": "string"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "risk_score": {
+            "title": "Risk Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "city_id",
+          "horizon_day",
+          "horizon_start",
+          "risk_score",
+          "model_version"
+        ],
+        "title": "RiskDay",
+        "type": "object"
+      },
+      "RiskHorizon": {
+        "properties": {
+          "cities": {
+            "items": {
+              "$ref": "#/components/schemas/RiskCity"
+            },
+            "title": "Cities",
+            "type": "array"
+          },
+          "days": {
+            "description": "Per-day hazards; empty on a warehouse scored before ML-13.",
+            "items": {
+              "$ref": "#/components/schemas/RiskDay"
+            },
+            "title": "Days",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cities",
+          "days"
+        ],
+        "title": "RiskHorizon",
+        "type": "object"
+      },
+      "Sequential": {
+        "properties": {
+          "cold": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cold",
+            "type": "array"
+          },
+          "hot": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hot",
+            "type": "array"
+          }
+        },
+        "required": [
+          "hot",
+          "cold"
+        ],
+        "title": "Sequential",
+        "type": "object"
+      },
+      "Status": {
+        "properties": {
+          "cities": {
+            "title": "Cities",
+            "type": "integer"
+          },
+          "database": {
+            "title": "Database",
+            "type": "string"
+          },
+          "latest_forecast": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Forecast"
+          },
+          "latest_observation": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Observation"
+          },
+          "server_time": {
+            "format": "date-time",
+            "title": "Server Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database",
+          "server_time",
+          "cities",
+          "latest_observation",
+          "latest_forecast"
+        ],
+        "title": "Status",
+        "type": "object"
+      },
+      "StormDay": {
+        "properties": {
+          "city_id": {
+            "title": "City Id",
+            "type": "string"
+          },
+          "date_key": {
+            "format": "date",
+            "title": "Date Key",
+            "type": "string"
+          },
+          "hours": {
+            "title": "Hours",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "peak_gust": {
+            "title": "Peak Gust",
+            "type": "number"
+          },
+          "pressure_change_24h": {
+            "title": "Pressure Change 24H",
+            "type": "number"
+          },
+          "sharpest_fall": {
+            "title": "Sharpest Fall",
+            "type": "number"
+          },
+          "sharpest_rise": {
+            "title": "Sharpest Rise",
+            "type": "number"
+          }
+        },
+        "required": [
+          "city_id",
+          "name",
+          "date_key",
+          "peak_gust",
+          "sharpest_fall",
+          "sharpest_rise",
+          "hours",
+          "pressure_change_24h"
+        ],
+        "title": "StormDay",
+        "type": "object"
+      },
+      "Theme": {
+        "properties": {
+          "anomaly_breaks": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Anomaly Breaks",
+            "type": "array"
+          },
+          "anomaly_z_threshold": {
+            "title": "Anomaly Z Threshold",
+            "type": "number"
+          },
+          "dark": {
+            "$ref": "#/components/schemas/ModePalette"
+          },
+          "light": {
+            "$ref": "#/components/schemas/ModePalette"
+          },
+          "neutral_index": {
+            "title": "Neutral Index",
+            "type": "integer"
+          },
+          "risk_breaks": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Risk Breaks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "light",
+          "dark",
+          "neutral_index",
+          "anomaly_z_threshold",
+          "anomaly_breaks",
+          "risk_breaks"
+        ],
+        "title": "Theme",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "ValidationEvent": {
+        "properties": {
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "city_id": {
+            "title": "City Id",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "city_id",
+          "city",
+          "date",
+          "direction",
+          "description"
+        ],
+        "title": "ValidationEvent",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Read-only access to the Climate Volatility & Risk Engine's gold tier.",
+    "title": "Horizon API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "Liveness. Never touches the database, so a sleeping Neon cannot fail it.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/ready": {
+      "get": {
+        "description": "Readiness: one uncached round trip to the serving warehouse.",
+        "operationId": "ready_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ready"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ready",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/v1/anomalies": {
+      "get": {
+        "description": "Every city on one day, with its departure and, where fitted, its rarity.",
+        "operationId": "anomalies_v1_anomalies_get",
+        "parameters": [
+          {
+            "description": "Defaults to the last scored day.",
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Defaults to the last scored day.",
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnomalyDay"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Anomalies",
+        "tags": [
+          "views"
+        ]
+      }
+    },
+    "/v1/climate-matrix": {
+      "get": {
+        "description": "Every city crossed with every year: hot, cold and net anomaly days.",
+        "operationId": "climate_matrix_v1_climate_matrix_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateMatrix"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Climate Matrix",
+        "tags": [
+          "views"
+        ]
+      }
+    },
+    "/v1/events": {
+      "get": {
+        "description": "The dated extremes the validation gate checks, from the city registry.",
+        "operationId": "events_v1_events_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationEvent"
+                  },
+                  "title": "Response Events V1 Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Events",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/v1/risk-horizon": {
+      "get": {
+        "description": "The latest seven-day forecast for every registered city, scored or not.",
+        "operationId": "risk_horizon_v1_risk_horizon_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskHorizon"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Risk Horizon",
+        "tags": [
+          "views"
+        ]
+      }
+    },
+    "/v1/status": {
+      "get": {
+        "description": "How fresh the serving tier is.",
+        "operationId": "status_v1_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Status",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/v1/storm-dynamics": {
+      "get": {
+        "description": "City-days of peak gust against the largest 24-hour pressure change.",
+        "operationId": "storm_dynamics_v1_storm_dynamics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StormDay"
+                  },
+                  "title": "Response Storm Dynamics V1 Storm Dynamics Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Storm Dynamics",
+        "tags": [
+          "views"
+        ]
+      }
+    },
+    "/v1/theme": {
+      "get": {
+        "description": "The palette, from the one module that measured it.",
+        "operationId": "theme_v1_theme_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Theme"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Theme",
+        "tags": [
+          "meta"
+        ]
+      }
+    }
+  }
+}
