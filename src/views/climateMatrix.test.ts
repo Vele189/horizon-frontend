@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { countBucket, discreteScale, grid, netBucket, orderCities, type Cell, type Trend } from "./climateMatrix";
-
-const BREAKS = [0, 2, 5, 10];
-const NEUTRAL = 4;
+import { citySeries, orderCities, trendLine, trendSentence, type Cell, type Trend } from "./climateMatrix";
 
 function cell(name: string, year: number, hot: number, cold: number, scored = true): Cell {
   return {
@@ -17,33 +14,6 @@ function cell(name: string, year: number, hot: number, cold: number, scored = tr
     scored,
   };
 }
-
-describe("countBucket", () => {
-  it.each([
-    [0, 0],
-    [1, 1],
-    [2, 1],
-    [3, 2],
-    [5, 2],
-    [6, 3],
-    [10, 3],
-    [11, 4],
-  ])("puts %i in step %i", (count, step) => {
-    expect(countBucket(count, BREAKS)).toBe(step);
-  });
-});
-
-describe("netBucket", () => {
-  it("puts zero on the neutral step", () => {
-    expect(netBucket(0, BREAKS, NEUTRAL)).toBe(NEUTRAL);
-  });
-  it("mirrors the count buckets either side", () => {
-    expect(netBucket(1, BREAKS, NEUTRAL)).toBe(5);
-    expect(netBucket(-1, BREAKS, NEUTRAL)).toBe(3);
-    expect(netBucket(11, BREAKS, NEUTRAL)).toBe(8);
-    expect(netBucket(-11, BREAKS, NEUTRAL)).toBe(0);
-  });
-});
 
 describe("orderCities", () => {
   const cells = [
@@ -70,25 +40,42 @@ describe("orderCities", () => {
   });
 });
 
-describe("grid", () => {
-  it("leaves an un-ingested city-year as a hole, not as zero", () => {
-    const cells = [cell("Alpha", 2000, 0, 0), cell("Alpha", 2001, 0, 0, false)];
-    const g = grid(cells, "hot", ["Alpha"], BREAKS, NEUTRAL);
-    expect(g.z).toEqual([[0.5, null]]);
-  });
-  it("hands rows to Plotly bottom-up", () => {
-    const cells = [cell("Alpha", 2000, 0, 0), cell("Beta", 2000, 0, 0)];
-    expect(grid(cells, "hot", ["Alpha", "Beta"], BREAKS, NEUTRAL).names).toEqual(["Beta", "Alpha"]);
+describe("citySeries", () => {
+  it("leaves an un-ingested year as a gap, not as zero", () => {
+    const cells = [cell("Alpha", 2001, 0, 0, false), cell("Alpha", 2000, 4, 1), cell("Beta", 2000, 9, 9)];
+    expect(citySeries(cells, "Alpha", "hot")).toEqual([
+      { year: 2000, days: 4 },
+      { year: 2001, days: null },
+    ]);
   });
 });
 
-describe("discreteScale", () => {
-  it("makes each colour a flat block", () => {
-    expect(discreteScale(["#a", "#b"])).toEqual([
-      [0, "#a"],
-      [0.5, "#a"],
-      [0.5, "#b"],
-      [1, "#b"],
-    ]);
+describe("trendLine", () => {
+  it("passes through the mean of the scored years with the server's slope", () => {
+    const series = [
+      { year: 2000, days: 2 },
+      { year: 2001, days: null },
+      { year: 2002, days: 4 },
+    ];
+    const line = trendLine(series, 10);
+    expect(line.get(2001)).toBeCloseTo(3);
+    expect(line.get(2000)).toBeCloseTo(2);
+    expect(line.get(2002)).toBeCloseTo(4);
+  });
+  it("draws nothing for a city with no scored year", () => {
+    expect(trendLine([{ year: 2000, days: null }], 1).size).toBe(0);
+  });
+});
+
+describe("trendSentence", () => {
+  it("says which way and by how much", () => {
+    expect(trendSentence("Alpha", "hot", 3.14, 10)).toContain("more common: about 3.1 more");
+    expect(trendSentence("Alpha", "cold", -2, 10)).toContain("rarer: about 2.0 fewer");
+  });
+  it("calls a small slope steady", () => {
+    expect(trendSentence("Alpha", "hot", 0.2, 10)).toContain("roughly steady");
+  });
+  it("says why there is no trend", () => {
+    expect(trendSentence("Alpha", "hot", null, 10)).toContain("does not have 10 measured years");
   });
 });

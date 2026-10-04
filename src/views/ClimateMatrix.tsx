@@ -2,143 +2,173 @@ import { useMemo, useState } from "react";
 
 import type { Schemas } from "../api/client";
 import { useClimateMatrix, useTheme } from "../api/hooks";
-import { Plot } from "../components/Plot";
+import { chartOptions, num, role, str } from "../charts/options";
+import { GoogleChart } from "../components/GoogleChart";
 import { QueryState } from "../components/QueryState";
-import { useMode } from "../theme/mode";
-import { discreteScale, grid, METRIC_LABELS, orderCities, type Metric, type Sort } from "./climateMatrix";
+import { citySeries, orderCities, trendLine, trendSentence } from "./climateMatrix";
 
 export const meta = {
   title: "Climate Matrix",
+  nav: "Extremes over time",
   path: "/climate-matrix",
-  question: "Which cities are seeing more extremes over time?",
+  question: "Are extreme hot and cold days becoming more common?",
   caption:
-    "One cell per city and year, shaded by the number of days that ran more than 2.5σ from that city's own seasonal normal.",
+    "An extreme day is one far outside a city's normal range for that time of year. Each bar counts them in one year; the dashed line shows the long-run direction.",
 };
 
-const SORTS: Sort[] = ["Trend", "Total", "Name"];
+type Kind = "hot" | "cold";
+
+const MODE = "dark";
 
 export function ClimateMatrix() {
   const matrix = useClimateMatrix();
   const theme = useTheme();
 
   return (
-    <section className="view">
-      <h1>{meta.title}</h1>
-      <p className="caption">{meta.caption}</p>
+    <section className="page">
+      <header className="page-head">
+        <p className="eyebrow">{meta.nav}</p>
+        <h1>{meta.question}</h1>
+        <p className="caption">{meta.caption}</p>
+      </header>
       <QueryState queries={[matrix, theme]}>
-        {matrix.data && theme.data && <Matrix data={matrix.data} theme={theme.data} />}
+        {matrix.data && theme.data && <Trends data={matrix.data} theme={theme.data} />}
       </QueryState>
     </section>
   );
 }
 
-function Matrix({ data, theme }: { data: Schemas["ClimateMatrix"]; theme: Schemas["Theme"] }) {
-  const [metric, setMetric] = useState<Metric>("hot");
-  const [sort, setSort] = useState<Sort>("Trend");
-  const mode = useMode();
-  const palette = theme[mode];
+function Trends({ data, theme }: { data: Schemas["ClimateMatrix"]; theme: Schemas["Theme"] }) {
+  const [kind, setKind] = useState<Kind>("hot");
+  const order = useMemo(() => orderCities(data.cells, data.trends, kind, "Trend"), [data, kind]);
+  const [picked, setPicked] = useState<string | null>(null);
+  const city = picked ?? order[0] ?? "";
 
-  const colours = metric === "net" ? palette.diverging : palette.sequential[metric];
-  const labels = metric === "net" ? data.net_labels : data.count_labels;
+  const palette = theme[MODE];
+  const colour = palette.sequential[kind][palette.sequential[kind].length - 2]!;
+  const opposite = palette.sequential[kind === "hot" ? "cold" : "hot"][3]!;
+  const slope = data.trends.find((t) => t.name === city)?.[kind] ?? null;
 
-  const figure = useMemo(() => {
-    const order = orderCities(data.cells, data.trends, metric, sort);
-    const g = grid(data.cells, metric, order, data.count_breaks, theme.neutral_index);
-    return {
-      data: [
-        {
-          type: "heatmap" as const,
-          z: g.z,
-          x: g.years,
-          y: g.names,
-          text: g.text,
-          hovertemplate: "%{text}<extra></extra>",
-          hoverongaps: true,
-          colorscale: discreteScale(colours),
-          zmin: 0,
-          zmax: colours.length,
-          showscale: false,
-          // The gap is the surface showing through, which is also what an
-          // un-ingested cell is: a hole reads as a wider gap, not a colour.
-          xgap: 2,
-          ygap: 2,
-        },
+  const yearly = useMemo(() => {
+    const series = citySeries(data.cells, city, kind);
+    const line = slope === null ? new Map<number, number>() : trendLine(series, slope);
+    const noun = kind === "hot" ? "extreme hot days" : "extreme cold days";
+    return [
+      [
+        str("Year"),
+        num(kind === "hot" ? "Extreme hot days" : "Extreme cold days"),
+        role("tooltip"),
+        num("Long-run direction"),
+        role("tooltip"),
       ],
-      layout: {
-        height: Math.max(320, 34 * g.names.length + 90),
-        margin: { r: 8, t: 8, l: 8, b: 8 },
-        paper_bgcolor: palette.chrome.surface,
-        plot_bgcolor: palette.chrome.surface,
-        font: { color: palette.chrome.ink_secondary },
-        hoverlabel: { align: "left" as const },
-        xaxis: { showgrid: false, ticks: "" as const, side: "bottom" as const, type: "category" as const, automargin: true },
-        yaxis: { showgrid: false, ticks: "" as const, type: "category" as const, automargin: true },
-        dragmode: false as const,
-      },
-    };
-  }, [data, metric, sort, colours, palette, theme.neutral_index]);
+      ...series.map((p) => [
+        String(p.year),
+        p.days,
+        p.days === null ? `${p.year}: not measured yet` : `${p.year}: ${p.days} ${noun}`,
+        line.has(p.year) ? Math.max(line.get(p.year)!, 0) : null,
+        "Long-run direction",
+      ]),
+    ];
+  }, [data.cells, city, kind, slope]);
 
-  const ranking = data.trends
-    .filter((t) => t[metric] !== null)
-    .map((t) => ({ name: t.name, value: t[metric] as number }))
-    .sort((a, b) => b.value - a.value);
+  const yearlyOptions = useMemo(
+    () =>
+      chartOptions(palette.chrome, {
+        seriesType: "bars",
+        series: { 0: { color: colour }, 1: { type: "line", color: palette.chrome.ink, lineDashStyle: [6, 4], lineWidth: 2 } },
+        bar: { groupWidth: "72%" },
+        vAxis: { title: "Days in the year", viewWindow: { min: 0 }, format: "0" },
+        hAxis: { showTextEvery: 4 },
+        legend: { position: "top", alignment: "end" },
+        chartArea: { top: 36 },
+      }),
+    [palette, colour],
+  );
+
+  const ranked = useMemo(
+    () =>
+      data.trends
+        .filter((t) => t[kind] !== null)
+        .map((t) => ({ name: t.name, value: t[kind] as number }))
+        .sort((a, b) => b.value - a.value),
+    [data.trends, kind],
+  );
+
+  const ranking = useMemo(
+    () => [
+      [str("City"), num("Change per decade"), role("style"), role("annotation"), role("tooltip")],
+      ...ranked.map((r) => [
+        r.name,
+        r.value,
+        `color: ${r.value >= 0 ? colour : opposite}; opacity: ${r.name === city ? 1 : 0.55}`,
+        `${r.value > 0 ? "+" : ""}${r.value.toFixed(1)}`,
+        `${r.name}: ${r.value > 0 ? "+" : ""}${r.value.toFixed(1)} ${kind} days a year, per decade`,
+      ]),
+    ],
+    [ranked, colour, opposite, city, kind],
+  );
+
+  const rankingOptions = useMemo(
+    () =>
+      chartOptions(palette.chrome, {
+        hAxis: { title: "Change in extreme days a year, per decade", format: "+#;−#;0" },
+        vAxis: { gridlines: { color: "transparent" } },
+        chartArea: { left: 110, right: 32, top: 8, bottom: 44 },
+        bar: { groupWidth: "70%" },
+      }),
+    [palette],
+  );
 
   return (
     <>
-      <div className="controls">
-        <div role="radiogroup" aria-label="Anomalies" className="segmented">
-          {(Object.keys(METRIC_LABELS) as Metric[]).map((m) => (
-            <button key={m} role="radio" aria-checked={metric === m} onClick={() => setMetric(m)}>
-              {METRIC_LABELS[m]}
-            </button>
-          ))}
+      <div className="toolbar">
+        <div role="radiogroup" aria-label="Kind of extreme" className="segmented">
+          <button role="radio" aria-checked={kind === "hot"} onClick={() => setKind("hot")}>
+            Hot days
+          </button>
+          <button role="radio" aria-checked={kind === "cold"} onClick={() => setKind("cold")}>
+            Cold days
+          </button>
         </div>
-        <label>
-          Order cities by{" "}
-          <select value={sort} onChange={(event) => setSort(event.target.value as Sort)}>
-            {SORTS.map((s) => (
-              <option key={s}>{s}</option>
+        <label className="field inline">
+          <span>City</span>
+          <select value={city} onChange={(e) => setPicked(e.target.value)}>
+            {order.map((name) => (
+              <option key={name}>{name}</option>
             ))}
           </select>
         </label>
       </div>
 
-      <Plot data={figure.data} layout={figure.layout} config={{ displayModeBar: false }} />
+      <div className="card">
+        <p className="lede">{trendSentence(city, kind, slope, data.min_trend_years)}</p>
+        <GoogleChart
+          type="ComboChart"
+          rows={yearly}
+          options={yearlyOptions}
+          height={340}
+          label={`${kind === "hot" ? "Extreme hot" : "Extreme cold"} days per year in ${city}`}
+        />
+        <p className="caption small">A missing bar is a year not yet in the warehouse, not a year with none.</p>
+      </div>
 
-      <div className="below">
-        <div>
-          <p className="caption">
-            {metric === "net" ? "Net anomaly days (hot − cold)" : `${METRIC_LABELS[metric]} anomaly days`} per
-            city-year. A gap is a year that has not been ingested, not a year with none.
-          </p>
-          <ul className="key" aria-label="Colour key">
-            {colours.map((colour, index) => (
-              <li key={colour}>
-                <span className="swatch" style={{ background: colour }} />
-                {labels[index]}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          {ranking.length === 0 ? (
-            <p className="caption">
-              No city has {data.min_trend_years} scored years yet, so no trend is reported.
-            </p>
-          ) : (
-            <table className="ranking">
-              <caption>Trend, {METRIC_LABELS[metric].toLowerCase()} days per decade</caption>
-              <tbody>
-                {ranking.map((row) => (
-                  <tr key={row.name}>
-                    <th scope="row">{row.name}</th>
-                    <td>{row.value.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+      <div className="card">
+        <h2>Which cities are changing fastest?</h2>
+        <p className="caption">
+          Bars to the right mean more extreme {kind} days than there used to be. Click a city to see its years.
+        </p>
+        {ranked.length === 0 ? (
+          <p className="notice">No city has {data.min_trend_years} measured years yet, so no trend is reported.</p>
+        ) : (
+          <GoogleChart
+            type="BarChart"
+            rows={ranking}
+            options={rankingOptions}
+            height={Math.max(200, 30 * ranked.length + 60)}
+            onSelect={(row) => setPicked(ranked[row]?.name ?? null)}
+            label={`Change in extreme ${kind} days per decade, by city`}
+          />
+        )}
       </div>
     </>
   );
