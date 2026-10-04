@@ -1,34 +1,40 @@
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 
 import { useStatus } from "./api/hooks";
+import { AnomalyMap } from "./views/AnomalyMap";
 import { ClimateMatrix } from "./views/ClimateMatrix";
-import { Pending } from "./views/Pending";
+import { RiskHorizon } from "./views/RiskHorizon";
+import { StormDynamics } from "./views/StormDynamics";
 import { anomalyMap, climateMatrix, riskHorizon, stormDynamics } from "./views";
 
+// The order the proposal lists them in.
 const NAV = [anomalyMap, climateMatrix, stormDynamics, riskHorizon];
 
 export function App() {
   return (
     <div className="shell">
-      <aside className="sidebar">
-        <p className="brand">Horizon</p>
+      <header className="topbar">
+        <p className="brand">
+          <span className="brand-mark" aria-hidden="true" />
+          Horizon
+        </p>
         <nav aria-label="Views">
           {NAV.map((view) => (
-            <NavLink key={view.path} to={view.path}>
-              {view.title}
+            <NavLink key={view.path} to={view.path} title={view.question}>
+              {view.nav}
             </NavLink>
           ))}
         </nav>
         <Freshness />
-      </aside>
+      </header>
       <main>
         <Routes>
-          <Route path="/" element={<Navigate to={climateMatrix.path} replace />} />
+          <Route path="/" element={<Navigate to={anomalyMap.path} replace />} />
+          <Route path={anomalyMap.path} element={<AnomalyMap />} />
           <Route path={climateMatrix.path} element={<ClimateMatrix />} />
-          <Route path={anomalyMap.path} element={<Pending view={anomalyMap} />} />
-          <Route path={stormDynamics.path} element={<Pending view={stormDynamics} />} />
-          <Route path={riskHorizon.path} element={<Pending view={riskHorizon} />} />
-          <Route path="*" element={<Navigate to={climateMatrix.path} replace />} />
+          <Route path={stormDynamics.path} element={<StormDynamics />} />
+          <Route path={riskHorizon.path} element={<RiskHorizon />} />
+          <Route path="*" element={<Navigate to={anomalyMap.path} replace />} />
         </Routes>
       </main>
     </div>
@@ -39,11 +45,8 @@ function Freshness() {
   const status = useStatus();
   if (!status.data) return null;
   return (
-    <dl className="freshness">
-      <dt>Observations to</dt>
-      <dd>{status.data.latest_observation ?? "none"}</dd>
-      <dt>Latest forecast</dt>
-      <dd>{status.data.latest_forecast ?? "none"}</dd>
-    </dl>
+    <p className="freshness">
+      Data to <b>{status.data.latest_observation ?? "—"}</b>
+    </p>
   );
 }

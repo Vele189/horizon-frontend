@@ -3,9 +3,9 @@
  * `horizon-backend/dashboard/views/climate_matrix.py`.
  *
  * What stays on the server: the grid itself (every city crossed with every
- * year) and the per-city trend. What lives here: how a count becomes a colour
- * step, and the order of the rows. The tests beside this file pin the same
- * cases the Python tests do, so the two implementations agree while both exist.
+ * year) and the per-city trend. What lives here: the order of the cities, one
+ * city's series, and the trend line drawn through it. The tests beside this
+ * file pin the same ordering cases the Python tests do.
  */
 
 import type { Schemas } from "../api/client";
@@ -22,18 +22,6 @@ export function value(cell: Cell, metric: Metric): number {
   return metric === "hot" ? cell.hot_days : metric === "cold" ? cell.cold_days : cell.net_days;
 }
 
-/** Which of the five sequential steps a count falls in. */
-export function countBucket(count: number, breaks: readonly number[]): number {
-  return breaks.filter((boundary) => count > boundary).length;
-}
-
-/** Which of the nine diverging steps a signed difference falls in. */
-export function netBucket(net: number, breaks: readonly number[], neutralIndex: number): number {
-  const distance = breaks.filter((boundary) => Math.abs(net) > boundary).length;
-  if (distance === 0) return neutralIndex;
-  return neutralIndex + (net > 0 ? distance : -distance);
-}
-
 /** Python's tuple ordering, for the sort keys below. */
 function compareTuples(a: readonly (boolean | number | string)[], b: readonly (boolean | number | string)[]) {
   for (let i = 0; i < a.length; i++) {
@@ -46,7 +34,7 @@ function compareTuples(a: readonly (boolean | number | string)[], b: readonly (b
 }
 
 /**
- * Row order, top of the chart first. Cities with nothing to say sort to the
+ * City order, first city first. Cities with nothing to say sort to the
  * bottom whatever the sort, so empty rows never sit between the ones that
  * answer the question.
  */
@@ -74,63 +62,42 @@ export function orderCities(cells: Cell[], trends: Trend[], metric: Metric, sort
   return names.sort((a, b) => compareTuples(keyed.get(a)!, keyed.get(b)!));
 }
 
-export function cellText(cell: Cell): string {
-  const head = `<b>${cell.name}</b>, ${cell.year}`;
-  if (!cell.scored) return `${head}<br><i>not ingested</i>`;
-  const net = cell.net_days > 0 ? `+${cell.net_days}` : `${cell.net_days}`;
-  return (
-    `${head}` +
-    `<br><b>${cell.hot_days}</b> hot days` +
-    `<br><b>${cell.cold_days}</b> cold days` +
-    `<br><b>${net}</b> net` +
-    `<br><span style='font-size:0.85em'>${cell.scored_days} days scored</span>`
-  );
+export type Point = { year: number; days: number | null };
+
+/** One city's count per year, null where the year has not been ingested. */
+export function citySeries(cells: Cell[], name: string, metric: Metric): Point[] {
+  return cells
+    .filter((cell) => cell.name === name)
+    .sort((a, b) => a.year - b.year)
+    .map((cell) => ({ year: cell.year, days: cell.scored ? value(cell, metric) : null }));
 }
 
-/** Plotly wants a continuous scale; this makes it render as blocks. */
-export function discreteScale(colours: readonly string[]): [number, string][] {
-  const steps = colours.length;
-  return colours.flatMap((colour, index): [number, string][] => [
-    [index / steps, colour],
-    [(index + 1) / steps, colour],
-  ]);
+/**
+ * The server's trend as a line over the city's years. The server fits by
+ * least squares over the scored years, and a least-squares line passes through
+ * the means, so the slope alone fixes it: nothing is refitted here, and the
+ * line on screen is the number in the ranking.
+ */
+export function trendLine(series: Point[], perDecade: number): Map<number, number> {
+  const scored = series.filter((p): p is { year: number; days: number } => p.days !== null);
+  const line = new Map<number, number>();
+  if (scored.length === 0) return line;
+  const meanYear = scored.reduce((sum, p) => sum + p.year, 0) / scored.length;
+  const meanDays = scored.reduce((sum, p) => sum + p.days, 0) / scored.length;
+  for (const p of series) line.set(p.year, meanDays + (perDecade / 10) * (p.year - meanYear));
+  return line;
 }
 
-export type Grid = {
-  years: string[];
-  names: string[];
-  z: (number | null)[][];
-  text: string[][];
-};
-
-/** The heatmap's matrices, rows in `order`. Null where nothing was ingested. */
-export function grid(
-  cells: Cell[],
-  metric: Metric,
-  order: string[],
-  breaks: readonly number[],
-  neutralIndex: number,
-): Grid {
-  const years = [...new Set(cells.map((cell) => cell.year))].sort((a, b) => a - b);
-  const byKey = new Map(cells.map((cell) => [`${cell.name}|${cell.year}`, cell]));
-  // Plotly's y axis counts upward, so the first city in reading order is the
-  // last row handed over.
-  const names = [...order].reverse();
-
-  const z = names.map((name) =>
-    years.map((year) => {
-      const cell = byKey.get(`${name}|${year}`);
-      if (!cell || !cell.scored) return null;
-      const v = value(cell, metric);
-      const bucket = metric === "net" ? netBucket(v, breaks, neutralIndex) : countBucket(v, breaks);
-      return bucket + 0.5;
-    }),
-  );
-  const text = names.map((name) =>
-    years.map((year) => {
-      const cell = byKey.get(`${name}|${year}`);
-      return cell ? cellText(cell) : "";
-    }),
-  );
-  return { years: years.map(String), names, z, text };
+/** The trend, said in a sentence. */
+export function trendSentence(name: string, metric: "hot" | "cold", perDecade: number | null, minYears: number): string {
+  const kind = metric === "hot" ? "extremely hot" : "extremely cold";
+  if (perDecade === null) {
+    return `${name} does not have ${minYears} measured years yet, so there is no trend to report.`;
+  }
+  const amount = Math.abs(perDecade);
+  if (amount < 0.5) return `In ${name}, ${kind} days are holding roughly steady.`;
+  const rounded = amount < 10 ? amount.toFixed(1) : amount.toFixed(0);
+  return perDecade > 0
+    ? `In ${name}, ${kind} days are becoming more common: about ${rounded} more a year every decade.`
+    : `In ${name}, ${kind} days are becoming rarer: about ${rounded} fewer a year every decade.`;
 }

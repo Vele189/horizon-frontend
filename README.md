@@ -2,17 +2,29 @@
 
 The React app for the Climate Volatility & Risk Engine. It reads the
 read-only API in [`horizon-backend`](https://github.com/Vele189/horizon-backend)
-and draws the four views the Streamlit dashboard draws today. Until all four
-are ported, views that are not yet here link to the dashboard.
+and draws the four views the Streamlit dashboard draws, redesigned for a
+reader who does not think in standard deviations: every view leads with its
+question in plain words and answers it in a sentence before the chart.
 
-| View | Status |
-|---|---|
-| Anomaly Map | Not yet ported |
-| Climate Matrix | Ported |
-| Storm Dynamics | Not yet ported |
-| Risk Horizon | Not yet ported |
+| View | Nav label | What it shows |
+|---|---|---|
+| Anomaly Map | Map | Full-screen dark world map in the style of weather maps: each city labelled with how far it sits from its normal (or its temperature), a day timeline with play, and jumps to documented extremes |
+| Climate Matrix | Extremes over time | Extreme hot or cold days per year for one city with its trend line, and every city's change per decade |
+| Storm Dynamics | Wind & pressure | Typical gusts by size of pressure swing, how strongly each city follows it, and every day of one city as a scatter |
+| Risk Horizon | Week ahead | Each city's chance of an extreme day this week, a gauge and day-by-day chances for the chosen city |
 
-Vite, React 19, TypeScript, React Router, TanStack Query, Plotly.js.
+Vite, React 19, TypeScript, React Router, TanStack Query, Leaflet, Google Charts.
+
+### Third-party hosts
+
+The browser loads three things from outside the app, so a Content Security
+Policy, if one is added, must allow them:
+
+- `www.gstatic.com`: Google Charts, which is only distributed from there and is
+  loaded on first use (`src/charts/google.ts`).
+- `*.basemaps.cartocdn.com`: the map's dark basemap tiles (CARTO, from
+  OpenStreetMap data; attribution is shown on the map).
+- `fonts.googleapis.com` and `fonts.gstatic.com`: the Inter typeface.
 
 ## Development
 
@@ -51,15 +63,15 @@ docker run --rm -p 8080:8080 -e API_URL=http://localhost:8000 horizon-frontend
 ```
 
 nginx serves the built files. At start-up the container writes `/config.js`
-from `API_URL` and `DASHBOARD_URL` (see `.env.example`), so the same image runs
+from `API_URL` (see `.env.example`), so the same image runs
 in every environment; nothing environment-specific is baked into the build.
 `/healthz` answers without touching the API.
 
 ## Deployment
 
 Railway builds the `Dockerfile` on every push to `master` (`railway.toml`),
-after CI passes. Set `API_URL` (and `DASHBOARD_URL` until parity) on the
-service. `PORT` is injected by Railway.
+after CI passes. Set `API_URL` on the service. All four views are ported,
+so `DASHBOARD_URL` is no longer read by any view. `PORT` is injected by Railway.
 
 When the API changes, deploy the backend first. The API only adds fields
 within `/v1`, so an older frontend keeps working against a newer API.
